@@ -203,7 +203,7 @@ def create_tables(database):
     )
     """)
     cursor.execute("""
-    CREATE TABLE `member_logs` (
+    CREATE TABLE IF NOT EXISTS `member_logs` (
         `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, 
         `member_id` int(11) NOT NULL,
         `position_after` text DEFAULT NULL,
