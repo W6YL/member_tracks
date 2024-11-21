@@ -63,4 +63,4 @@ async def shack_members(ctx, name: str = None):
     embed = generate_members_embed(members)
     ctx.respond(embed=embed)
 
-bot.run(config["discord"]["bot_token"])
+bot.run(config["discord"]["discord_token"])
