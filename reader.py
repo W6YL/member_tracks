@@ -213,6 +213,7 @@ def create_tables(database):
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `card_id` INT NOT NULL,
         `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX `timestamp_FI_1` (`timestamp`),
         FOREIGN KEY (`card_id`) REFERENCES `cards`(`id`)
     )
     """)
