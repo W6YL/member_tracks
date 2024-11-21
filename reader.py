@@ -23,6 +23,14 @@ def card_add_log(card_id, database):
     cursor.execute("INSERT INTO `logs` (`card_id`) VALUES (%s)", (card_id,))
     database.commit()
 
+def check_login_within_timeout(card_id, database, interval_min_injectable):
+    cursor = database.cursor()
+    cursor.execute(f"SELECT * FROM `logs` WHERE `timestamp` > (now() - INTERVAL {interval_min_injectable} MINUTE) AND `card_id` = %s ORDER BY `timestamp` DESC LIMIT 1", (card_id,))
+    result = cursor.fetchone()
+    if result is None:
+        return None
+    return result[0]
+
 def card_get_user(card_id, database):
     cursor = database.cursor()
     cursor.execute("SELECT id, first_name, last_name, callsign, position_in_club, discord_user_id FROM `members` WHERE `card_id` = %s", (card_id,))
@@ -37,6 +45,11 @@ def card_get_user(card_id, database):
         "position_in_club": result[4],
         "discord_user_id": result[5]
     }
+
+def toggle_inside_shack(member_id, database):
+    cursor = database.cursor()
+
+    database.commit()
 
 #### COMMANDS ####
 
@@ -55,6 +68,13 @@ def card_read(ser, config, database):
     card_add_log(card_id, database)
     print(f"Card ID: {card_id}, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
     user = card_get_user(card_id, database)
+    login_within_timeout = check_login_within_timeout(card_id, database, config["database"]["card_tap_timeout_min"])
+    if login_within_timeout is not None:
+        return
+    
+    # If the user is not in the database, we don't have any information on them
+    status = toggle_inside_shack(user["id"], database)
+    
     if user is not None:
         full_webhook_push(user["first_name"] + " " + user["last_name"], user["callsign"], user["position_in_club"], data, user["discord_user_id"], config)
     else:
@@ -118,14 +138,17 @@ def current_timestamp():
     dt_utc = dt_local.astimezone(timezone.utc)
     return dt_utc.strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
-def unk_webhook_push(card_id, card_index, config):
+def unk_webhook_push(card_id, card_index, in_out, config):
+    in_out = "in" if in_out else "out"
+    to_of = "to" if in_out == "in" else "from"
+
     requests.post(config["discord"]["webhook_url"], json={
         'content': '', 
         'tts': False, 
         'embeds': [
             {'id': 652627557, 
-             'title': 'Member Login', 
-             'description': 'A member has logged in to the hamshack (Unregistered Card)', 
+             'title': f'Member Log{in_out}', 
+             'description': f'A member has logged {in_out} {to_of} the hamshack (Unregistered Card)', 
              'color': 15409955, 
              'fields': [
                  {'id': 974455510, 'name': 'CARD ID', 'value': card_id.hex().upper(), 'inline': True},
@@ -139,9 +162,12 @@ def unk_webhook_push(card_id, card_index, config):
         'username': 'HamShackBot'
     })
 
-def full_webhook_push(name, callsign, position, card_id, discord_id, config):
+def full_webhook_push(name, callsign, position, card_id, discord_id, in_out, config):
     member = f'<@{discord_id}>' if discord_id is not None else name
     username, avatar_url = get_discord_user_info(discord_id, config)
+    in_out = "in" if in_out else "out"
+    to_of = "to" if in_out == "in" else "from"
+
     if username is None:
         username = name
         member = name
@@ -153,9 +179,9 @@ def full_webhook_push(name, callsign, position, card_id, discord_id, config):
         'embeds': [
             {
                 'id': 652627557, 
-                'title': 'Member Login', 
-                'description': f'{member} has logged in to the hamshack', 
-                'color': 2326507, 
+                'title': f'Member Log{in_out}', 
+                'description': f'{member} has logged {in_out} {to_of} the hamshack', 
+                'color': 2473520 if in_out == "in" else 2326507, 
                 'fields': [
                     {'id': 2340604, 
                      'name': 'Name', 
@@ -205,6 +231,7 @@ def create_tables(database):
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS `cards` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `inside_shack` int DEFAULT 0,
         `card_data` BLOB NOT NULL
     )
     """)
