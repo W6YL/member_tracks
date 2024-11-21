@@ -237,6 +237,7 @@ def reader_loop(ser, config, database):
         pass
     finally:
         ser.close()
+        database.close()
 
 def create_tables(database):
     cursor = database.cursor()
