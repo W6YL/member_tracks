@@ -217,9 +217,13 @@ def full_webhook_push(name, callsign, position, card_id, discord_id, in_out, con
             'name': 'Position', 
             'value': position.title() if position is not None else 'N/A', 
             'inline': True}, 
+        {'id': 974455509,
+            'name': '\u200b',
+            'value': '\u200b'},
         {'id': 974455510, 
             'name': 'CARD ID', 
-            'value': card_id[:8].hex().upper()}
+            'value': card_id[:8].hex().upper(),
+            'inline': True},
     ]
     if in_out == "out":
         stay_length = stay_length_of_user(card_number, database)
