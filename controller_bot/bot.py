@@ -27,11 +27,12 @@ def generate_members_embed(members):
         description=f"There are {len(members)} member{s} in the shack right now!",
         color=0x1ab00f
     )
+    
     for i in range(0, len(members), 2):
         chunk = members[i:i+2]
         for member in chunk:
-            last_login = 1234567890
-            embed.add_field(name=f"{member['first_name']} {member['last_name'][:1]}.", value=f"{member['position']}\nLogged in <t:{last_login}:R>", inline=True)
+            last_login = member["last_timestamp"].strftime("%s")
+            embed.add_field(name=f"{member['first_name']} {member['last_name'][:1]}.", value=f"{member['position_in_club']}\nLogged in <t:{last_login}:R>", inline=True)
         embed.add_field(name="\u200b", value="\u200b")
     return embed
 
@@ -53,11 +54,13 @@ WHERE
     cards.inside_shack = 1""")
     members = []
     for member in cursor.fetchall():
-        print(member)
+        members.append(member)
+    return members
 
 @bot.slash_command()
 async def shack_members(ctx, name: str = None):
-    generate_members_embed([])
+    members = get_members()
+    embed = generate_members_embed(members)
+    ctx.respond(embed=embed)
 
-# bot.run(config["discord"]["bot_token"])
-get_members()
+bot.run(config["discord"]["bot_token"])
