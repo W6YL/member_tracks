@@ -63,7 +63,7 @@ WHERE
     return members
 
 @bot.slash_command()
-async def shack_members(ctx, name: str = None):
+async def shack_members(ctx):
     members = get_members()
     embed = generate_members_embed(members)
     await ctx.respond(embed=embed)
