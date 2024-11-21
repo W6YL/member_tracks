@@ -56,6 +56,7 @@ WHERE
     members = []
     for member in cursor.fetchall():
         members.append(member)
+    cursor.close()
     return members
 
 @bot.slash_command()
