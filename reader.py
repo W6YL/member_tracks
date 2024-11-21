@@ -79,7 +79,7 @@ def card_read(ser, config, database):
     # Hash the data to get a card ID, we dont want to store the actual data
     hash = hashlib.sha256()
     hash.update(data)
-    card_id = hash.digest()
+    data = hash.digest()
 
     card_id = card_handle_id(data, database)
 
