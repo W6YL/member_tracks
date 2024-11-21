@@ -29,7 +29,7 @@ def check_login_within_timeout(card_id, database, interval_min_injectable):
     result = cursor.fetchone()
     if result is None:
         return None
-    return result[0]
+    return result[0] != 0 # if the resulting number of rows is not 0, then the user has logged in within the timeout
 
 def card_get_user(card_id, database):
     cursor = database.cursor()
@@ -100,7 +100,8 @@ def get_config():
             "port": 3306,
             "username": None,
             "password": None,
-            "database": None
+            "database": None,
+            "card_tap_timeout_min": 2
         },
         "arduino": {
             "port": None
