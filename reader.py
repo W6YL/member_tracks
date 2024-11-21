@@ -121,10 +121,10 @@ def unk_webhook_push(card_id, config):
         'content': '', 
         'tts': False, 
         'embeds': [
-            {'id': 15409955, 
+            {'id': 652627557, 
              'title': 'Member Login', 
              'description': 'A member has logged in to the hamshack (Unregistered Card)', 
-             'color': 2326507, 
+             'color': 15409955, 
              'fields': [
                  {'id': 974455510, 'name': 'CARD ID', 'value': card_id.hex().upper()}
              ], 
