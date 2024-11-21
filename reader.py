@@ -174,7 +174,7 @@ def unk_webhook_push(card_id, card_index, in_out, config):
              'description': f'A member has logged {in_out} {to_of} the hamshack (Unregistered Card)', 
              'color': 15409955, 
              'fields': [
-                 {'id': 974455510, 'name': 'CARD ID', 'value': card_id.hex().upper(), 'inline': True},
+                 {'id': 974455510, 'name': 'CARD ID', 'value': card_id.hex().upper()[:8], 'inline': True},
                  {"id": 770098205, "name": "CARD INDEX", "value": card_index, "inline": True}
              ], 
              'author': {'icon_url': 'https://cdn.discordapp.com/embed/avatars/0.png', 'name': 'Unknown User'}, 
@@ -220,7 +220,7 @@ def full_webhook_push(name, callsign, position, card_id, discord_id, in_out, con
                      'inline': True}, 
                     {'id': 974455510, 
                      'name': 'CARD ID', 
-                     'value': card_id.hex().upper()}
+                     'value': card_id.hex().upper()[:8]}
                 ], 
                 'author': {'name': username, 
                            'icon_url': avatar_url},
