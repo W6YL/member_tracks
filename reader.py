@@ -130,7 +130,7 @@ def unk_webhook_push(card_id, card_index, config):
                  {"id": 770098205, "name": "CARD INDEX", "value": card_index, "inline": True}
              ], 
              'author': {'icon_url': 'https://cdn.discordapp.com/embed/avatars/0.png', 'name': 'Unknown User'}, 
-             'timestamp': '2024-11-21T05:59:00.000Z'}
+             'timestamp': current_timestamp()}
         ], 
         'components': [], 
         'actions': {}, 
