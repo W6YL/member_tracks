@@ -46,10 +46,16 @@ def card_get_user(card_id, database):
         "discord_user_id": result[5]
     }
 
-def toggle_inside_shack(member_id, database):
+def toggle_inside_shack(card_id, database):
     cursor = database.cursor()
-
+    cursor.execute("SELECT `inside_shack` FROM `cards` WHERE `id` = %s", (card_id,))
+    result = cursor.fetchone()
+    if result is None:
+        return None
+    inside_shack = 0 if result[0] else 1
+    cursor.execute("UPDATE `cards` SET `inside_shack` = %s WHERE `id` = %s", (inside_shack, card_id))
     database.commit()
+    return inside_shack == 1
 
 #### COMMANDS ####
 
@@ -73,12 +79,12 @@ def card_read(ser, config, database):
         return
     
     # If the user is not in the database, we don't have any information on them
-    status = toggle_inside_shack(user["id"], database)
+    status = toggle_inside_shack(card_id, database)
     
     if user is not None:
-        full_webhook_push(user["first_name"] + " " + user["last_name"], user["callsign"], user["position_in_club"], data, user["discord_user_id"], config)
+        full_webhook_push(user["first_name"] + " " + user["last_name"], user["callsign"], user["position_in_club"], data, user["discord_user_id"], status, config)
     else:
-        unk_webhook_push(data, card_id, config)
+        unk_webhook_push(data, card_id, status, config)
 
 COMMANDS = {
     0x01: handle_state_change,
