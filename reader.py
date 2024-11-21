@@ -216,7 +216,7 @@ def full_webhook_push(name, callsign, position, card_id, discord_id, in_out, con
                       'inline': True}, 
                     {'id': 449601989, 
                      'name': 'Position', 
-                     'value': position if position is not None else 'N/A', 
+                     'value': position.title() if position is not None else 'N/A', 
                      'inline': True}, 
                     {'id': 974455510, 
                      'name': 'CARD ID', 
