@@ -157,7 +157,7 @@ def get_discord_user_info(discord_id, config):
 
 def stay_length_of_user(card_id, database):
     cursor = database.cursor()
-    cursor.execute("SELECT `timestamp` FROM `logs` WHERE `card_id` = %s ORDER BY `timestamp` DESC LIMIT 1", (card_id,))
+    cursor.execute("SELECT `timestamp` FROM `logs` WHERE `card_id` = %s AND `login_out` = 1 ORDER BY `timestamp` DESC LIMIT 1", (card_id,))
     result = cursor.fetchone()
     if result is None:
         return None
@@ -223,7 +223,11 @@ def full_webhook_push(name, callsign, position, card_id, discord_id, in_out, con
     ]
     if in_out == "out":
         stay_length = stay_length_of_user(card_id, database)
-        fields.append({"id": 770098205, "name": "Stay Length", "value": time.strftime("%H:%M:%S", stay_length), "inline": True})
+        fields.append({
+            "id": 770098205, 
+            "name": "Stay Length", 
+            "value": time.strftime("%H:%M:%S", stay_length) if stay_length is not None else "N/A",
+            "inline": True})
 
     requests.post(config["discord"]["webhook_url"], json={
         'content': '', 
