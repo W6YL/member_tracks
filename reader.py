@@ -154,7 +154,15 @@ def get_discord_user_info(discord_id, config):
             return None, None
         user = response.json()
         return user['global_name'] if "global_name" in user else user["username"], f"https://cdn.discordapp.com/avatars/{discord_id}/{user['avatar']}.webp"
-    
+
+def stay_length_of_user(card_id, database):
+    cursor = database.cursor()
+    cursor.execute("SELECT `timestamp` FROM `logs` WHERE `card_id` = %s ORDER BY `timestamp` DESC LIMIT 1", (card_id,))
+    result = cursor.fetchone()
+    if result is None:
+        return None
+    return (datetime.now() - result[0])
+
 def current_timestamp():
     time_now = datetime.now()
     dt_local = time_now.astimezone()
@@ -196,6 +204,27 @@ def full_webhook_push(name, callsign, position, card_id, discord_id, in_out, con
         member = name
         avatar_url = "https://cdn.discordapp.com/embed/avatars/0.png"
 
+    fields = [
+        {'id': 2340604, 
+            'name': 'Name', 
+            'value': name, 
+            'inline': True}, 
+        {'id': 445672415, 
+            'name': 'Callsign', 
+            'value': callsign if callsign is not None else 'N/A', 
+            'inline': True}, 
+        {'id': 449601989, 
+            'name': 'Position', 
+            'value': position.title() if position is not None else 'N/A', 
+            'inline': True}, 
+        {'id': 974455510, 
+            'name': 'CARD ID', 
+            'value': card_id[:8].hex().upper()}
+    ]
+    if in_out == "out":
+        stay_length = stay_length_of_user(card_id, config)
+        fields.append({"id": 770098205, "name": "Stay Length", "value": time.strftime("%H:%M:%S", stay_length), "inline": True})
+
     requests.post(config["discord"]["webhook_url"], json={
         'content': '', 
         'tts': False, 
@@ -205,23 +234,7 @@ def full_webhook_push(name, callsign, position, card_id, discord_id, in_out, con
                 'title': f'Member Log{in_out}', 
                 'description': f'{member} has logged {in_out} {to_of} the hamshack', 
                 'color': 2473520 if in_out == "in" else 2326507, 
-                'fields': [
-                    {'id': 2340604, 
-                     'name': 'Name', 
-                     'value': name, 
-                     'inline': True}, 
-                    {'id': 445672415, 
-                      'name': 'Callsign', 
-                      'value': callsign if callsign is not None else 'N/A', 
-                      'inline': True}, 
-                    {'id': 449601989, 
-                     'name': 'Position', 
-                     'value': position.title() if position is not None else 'N/A', 
-                     'inline': True}, 
-                    {'id': 974455510, 
-                     'name': 'CARD ID', 
-                     'value': card_id[:8].hex().upper()}
-                ], 
+                'fields': fields, 
                 'author': {'name': username, 
                            'icon_url': avatar_url},
                 'timestamp': current_timestamp(),
