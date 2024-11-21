@@ -111,7 +111,10 @@ def get_discord_user_info(discord_id, config):
         return user['global_name'] if "global_name" in user else user["username"], f"https://cdn.discordapp.com/avatars/{discord_id}/{user['avatar']}.webp"
     
 def current_timestamp():
-    return datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    time_now = datetime.now()
+    dt_local = time_now.astimezone()
+    dt_utc = dt_local.astimezone(timezone.utc)
+    return dt_utc.strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
 def full_webhook_push(name, callsign, position, card_id, discord_id, config):
     member = f'<@{discord_id}>' if discord_id is not None else 'A member'
