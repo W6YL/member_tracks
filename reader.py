@@ -20,7 +20,7 @@ def card_handle_id(data, database):
 
 def card_add_log(card_id, database):
     cursor = database.cursor()
-    cursor.execute("INSERT INTO `logs` (`card_id`) VALUES (%s)", (card_id,))
+    cursor.execute("INSERT INTO `logs` (`card_id`, `login_out`) SELECT `id`, `inside_shack` FROM `cards` WHERE `id`=%s", (card_id,))
     database.commit()
 
 def check_login_within_timeout(card_id, database, interval_min_injectable):
@@ -250,6 +250,7 @@ def create_tables(database):
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `card_id` INT NOT NULL,
         `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `login_out` BOOLEAN DEFAULT 0,
         INDEX `timestamp_FI_1` (`timestamp`),
         FOREIGN KEY (`card_id`) REFERENCES `cards`(`id`)
     )
