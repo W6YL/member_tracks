@@ -318,6 +318,8 @@ def main():
         password=config["database"]["password"],
         database=config["database"]["database"]
     )
+    database.autocommit = True
+
     create_tables(database)
 
     print("Connected To: " + ser.portstr)

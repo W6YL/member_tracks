@@ -12,6 +12,7 @@ database = mysql.connector.connect(
     password=config["database"]["password"],
     database=config["database"]["database"]
 )
+database.autocommit = True
 
 def generate_members_embed(members):
     if len(members) == 0:
