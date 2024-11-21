@@ -106,7 +106,8 @@ def create_tables(database):
     CREATE TABLE IF NOT EXISTS `logs` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `card_id` INT NOT NULL,
-        `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (`card_id`) REFERENCES `cards`(`id`)
     )
     """)
     database.commit()
