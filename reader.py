@@ -110,9 +110,9 @@ def card_read(ser, config, database):
             add_time_log(card_id, stay_length, on_time, database)
 
     if user is not None:
-        full_webhook_push(user["first_name"] + " " + user["last_name"], user["callsign"], user["position_in_club"], data, user["discord_user_id"], status, config, card_id, database)
+        full_webhook_push(user["first_name"] + " " + user["last_name"], user["callsign"], user["position_in_club"], data, user["discord_user_id"], status, config, stay_length)
     else:
-        unk_webhook_push(data, card_id, status, config)
+        unk_webhook_push(data, card_id, status, config, stay_length)
 
 COMMANDS = {
     0x01: handle_state_change,
@@ -181,9 +181,21 @@ def current_timestamp():
     dt_utc = dt_local.astimezone(timezone.utc)
     return dt_utc.strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
-def unk_webhook_push(card_id, card_index, in_out, config):
+def unk_webhook_push(card_id, card_index, in_out, config, time_on):
     in_out = "in" if in_out else "out"
     to_of = "to" if in_out == "in" else "from"
+    
+    fields = [
+        {'id': 974455510, 'name': 'CARD ID', 'value': card_id[:8].hex().upper(), 'inline': True},
+        {"id": 770098205, "name": "CARD INDEX", "value": card_index, "inline": True}
+    ]
+
+    if in_out == "out":
+        fields.append({
+            "id": 770098205, 
+            "name": "Stay Length", 
+            "value": time.strftime("%H:%M:%S", time.gmtime(time_on)) if time_on is not None else "N/A",
+            "inline": False})
 
     requests.post(config["discord"]["webhook_url"], json={
         'content': '', 
@@ -193,10 +205,7 @@ def unk_webhook_push(card_id, card_index, in_out, config):
              'title': f'Member Log{in_out}', 
              'description': f'A member has logged {in_out} {to_of} the hamshack (Unregistered Card)', 
              'color': 15409955, 
-             'fields': [
-                 {'id': 974455510, 'name': 'CARD ID', 'value': card_id[:8].hex().upper(), 'inline': True},
-                 {"id": 770098205, "name": "CARD INDEX", "value": card_index, "inline": True}
-             ], 
+             'fields': fields, 
              'author': {'icon_url': 'https://cdn.discordapp.com/embed/avatars/0.png', 'name': 'Unknown User'}, 
              'timestamp': current_timestamp()}
         ], 
