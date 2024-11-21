@@ -140,11 +140,11 @@ def unk_webhook_push(card_id, card_index, config):
     })
 
 def full_webhook_push(name, callsign, position, card_id, discord_id, config):
-    member = f'<@{discord_id}>' if discord_id is not None else 'A member'
+    member = f'<@{discord_id}>' if discord_id is not None else name
     username, avatar_url = get_discord_user_info(discord_id, config)
     if username is None:
         username = name
-        member = "A member"
+        member = name
         avatar_url = "https://cdn.discordapp.com/embed/avatars/0.png"
 
     requests.post(config["discord"]["webhook_url"], json={
