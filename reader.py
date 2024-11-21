@@ -107,6 +107,8 @@ def get_discord_user_info(discord_id, config):
     with requests.get(f'https://discord.com/api/v{config["discord"]["api_version"]}/users/{discord_id}', headers={
         'Authorization': f'Bot {config["discord"]["discord_token"]}'
     }) as response:
+        if not response.ok:
+            return None, None
         user = response.json()
         return user['global_name'] if "global_name" in user else user["username"], f"https://cdn.discordapp.com/avatars/{discord_id}/{user['avatar']}.webp"
     
@@ -140,6 +142,10 @@ def unk_webhook_push(card_id, card_index, config):
 def full_webhook_push(name, callsign, position, card_id, discord_id, config):
     member = f'<@{discord_id}>' if discord_id is not None else 'A member'
     username, avatar_url = get_discord_user_info(discord_id, config)
+    if username is None:
+        username = "Unknown User"
+        member = "A member"
+        avatar_url = "https://cdn.discordapp.com/embed/avatars/0.png"
 
     requests.post(config["discord"]["webhook_url"], json={
         'content': '', 
