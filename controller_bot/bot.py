@@ -22,9 +22,10 @@ def generate_members_embed(members):
         )
     
     s = "s" if len(members) > 1 else ""
+    areis = "are" if len(members) > 1 else "is"
     embed = discord.Embed(
         title="Shack Status", 
-        description=f"There are {len(members)} member{s} in the shack right now!",
+        description=f"There {areis} {len(members)} member{s} in the shack right now!",
         color=0x1ab00f
     )
     
@@ -61,6 +62,6 @@ WHERE
 async def shack_members(ctx, name: str = None):
     members = get_members()
     embed = generate_members_embed(members)
-    ctx.respond(embed=embed)
+    await ctx.respond(embed=embed)
 
 bot.run(config["discord"]["discord_token"])

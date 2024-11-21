@@ -19,6 +19,22 @@ Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
+######################################
+
+/etc/systemd/system/w6yl-card-bot.service
+######################################
+[Unit]
+Description=W6YL Card Bot Service
+After=multi-user.target
+
+[Service]
+Type=simple
+WorkingDirectory={dir_path}/controller_bot
+ExecStart={exec_path} {dir_path}/controller_bot/bot.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
 ######################################"""
 
 print(service)
