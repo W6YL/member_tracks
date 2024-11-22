@@ -125,7 +125,10 @@ def get_members_from_db(ctx: discord.AutocompleteContext):
     
     member_list = []
     for member in members:
-        member_list.append(f"{member[1]} {member[2]} ({member[0]})")
+        m_name =f"{member[1]} {member[2]} ({member[0]})"
+        if member[1] is None or member[2] is None:
+            m_name = f"Guest User ({member[0]})"
+        member_list.append(m_name)
     return member_list
 
 @bot.slash_command()
