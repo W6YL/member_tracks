@@ -4,7 +4,11 @@ import json
 
 from datetime import datetime
 from discord.commands import Option
-from ..reader import full_webhook_push, unk_webhook_push, card_get_user, stay_length_of_user, add_time_log
+
+# really fucky way to import from a parent directory
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from reader import full_webhook_push, unk_webhook_push, card_get_user, stay_length_of_user, add_time_log
 
 bot = discord.Bot()
 config = json.load(open("../config.json"))
