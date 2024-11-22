@@ -144,7 +144,7 @@ async def tag_out(ctx: discord.ApplicationContext, card_id: Option(str, "The car
         if config["discord"]["admin_role"] is None:
             await ctx.respond("No admin role is set in the config, cannot tag out another user.")
             return
-        if not ctx.author.has_role(config["discord"]["admin_role"]):
+        if ctx.author.get_role(config["discord"]["admin_role"]) is None:
             await ctx.respond("You do not have permission to tag out another user.")
             return
         
