@@ -120,9 +120,17 @@ async def shack_members(ctx):
 
 # TODO: this
 @bot.slash_command()
-async def tag_out(ctx, card_id: Option(int, "The card ID to tag out of the shack.", required=False)):
+async def tag_out(ctx: discord.ApplicationContext, card_id: Option(int, "The card ID to tag out of the shack.", required=False)):
     if card_id is None:
         card_id = get_card_id_from_discord(ctx.author.id, database)
+    else:
+        if config["discord"]["admin_role"] is None:
+            await ctx.respond("No admin role is set in the config, cannot tag out another user.")
+            return
+        if not ctx.author.has_role(config["discord"]["admin_role"]):
+            await ctx.respond("You do not have permission to tag out another user.")
+            return
+        
     status, card_data = toggle_inside_shack(card_id, database)
 
     if status:
