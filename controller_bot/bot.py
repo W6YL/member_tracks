@@ -112,6 +112,22 @@ def toggle_inside_shack(card_id, database):
     database.commit()
     return True, result[1]
 
+def get_members_from_db(ctx: discord.ApplicationContext):
+    if config["discord"]["admin_role"] is None:
+        return ["unauth"]
+    if not ctx.author.has_role(config["discord"]["admin_role"]):
+        return ["unauth"]
+    
+    cursor = database.cursor()
+    cursor.execute("""SELECT cards.id AS card_id, members.first_name, members.last_name FROM cards LEFT JOIN members ON members.card_id = cards.id WHERE cards.inside_shack = 1""")
+    members = cursor.fetchall()
+    cursor.close()
+    
+    member_list = []
+    for member in members:
+        member_list.append(f"{member[1]} {member[2]} ({member[0]})")
+    return member_list
+
 @bot.slash_command()
 async def shack_members(ctx):
     members = get_members()
@@ -120,10 +136,11 @@ async def shack_members(ctx):
 
 # TODO: this
 @bot.slash_command()
-async def tag_out(ctx: discord.ApplicationContext, card_id: Option(int, "The card ID to tag out of the shack.", required=False)):
+async def tag_out(ctx: discord.ApplicationContext, member: Option(str, "The card ID to tag out of the shack.", required=False, autocomplete=get_members_from_db)):
     if card_id is None:
         card_id = get_card_id_from_discord(ctx.author.id, database)
     else:
+        card_id = int(card_id.split("(")[1].split(")")[0])
         if config["discord"]["admin_role"] is None:
             await ctx.respond("No admin role is set in the config, cannot tag out another user.")
             return
