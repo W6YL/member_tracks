@@ -283,6 +283,7 @@ def reader_loop(ser, config, database):
                     ser.read(1)
 
             COMMANDS[command](ser, config, database)
+            time.sleep(0.5)
     except KeyboardInterrupt:
         pass
     finally:
