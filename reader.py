@@ -275,6 +275,7 @@ def full_webhook_push(name, callsign, position, card_id, discord_id, in_out, con
 def reader_loop(ser, config, database):
     try:
         while True:
+            time.sleep(0.5)
             if ser.in_waiting == 0:
                 continue
             command, = ser.read(1)
@@ -285,7 +286,6 @@ def reader_loop(ser, config, database):
                     ser.read(1)
 
             COMMANDS[command](ser, config, database)
-            time.sleep(0.5)
     except KeyboardInterrupt:
         pass
     finally:
@@ -346,7 +346,7 @@ def create_tables(database):
         `time_on` timestamp NOT NULL DEFAULT current_timestamp(),
         FOREIGN KEY (`card_id`) REFERENCES `cards`(`id`)
     ) """)
-    
+
     cursor.close()
     database.commit()
 
