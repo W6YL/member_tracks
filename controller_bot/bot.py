@@ -1,6 +1,9 @@
 import mysql.connector
+import threading
 import discord
+import socket
 import json
+import time
 
 from datetime import datetime
 from discord.commands import Option
@@ -144,6 +147,29 @@ def get_members_from_db(ctx: discord.AutocompleteContext):
     if guests_present:
         member_list.append("All Guests")
     return member_list
+
+def _unlock_door(delay_time=3):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect(("127.0.0.1", 46099))
+        s.send(b"\x01\x01")
+        time.sleep(delay_time)
+        s.send(b"\x01\x00\x0a")
+        s.close()
+
+def unlock_door(delay_time=3):
+    threading.Thread(target=_unlock_door, args=(delay_time,), daemon=True).start()
+
+@bot.slash_command()
+async def open_door(ctx):
+    if config["discord"]["admin_role"] is None:
+        await ctx.respond("No admin role is set in the config, cannot open the door.")
+        return
+    if ctx.author.get_role(config["discord"]["admin_role"]) is None:
+        await ctx.respond("You do not have permission to open the door.")
+        return
+    
+    unlock_door()
+    await ctx.respond("The door has been opened.")
 
 @bot.slash_command()
 async def shack_members(ctx):
