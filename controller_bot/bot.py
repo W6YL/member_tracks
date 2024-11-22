@@ -150,7 +150,7 @@ async def shack_members(ctx):
 
 # TODO: this
 @bot.slash_command()
-async def tag_out(ctx: discord.ApplicationContext, card_id: Option(str, "The card ID to tag out of the shack.", required=False, autocomplete=get_members_from_db)):
+async def tag_out(ctx: discord.ApplicationContext, card_id: Option(str, "The card ID to tag out of the shack.", required=False, autocomplete=get_members_from_db)): # type: ignore
     if card_id is None:
         card_id = get_card_id_from_discord(ctx.author.id, database)
     else:
