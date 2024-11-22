@@ -49,7 +49,7 @@ def generate_members_embed(members):
         embed.add_field(name="\u200b", value="\u200b")
     return embed
 
-def get_members():
+def get_members(include_unk=False):
     cursor = database.cursor(dictionary=True)
     cursor.execute("""SELECT
     cards.id AS card_id,
@@ -67,7 +67,7 @@ WHERE
     cards.inside_shack = 1""")
     members = []
     for member in cursor.fetchall():
-        if member["id"] is None:
+        if member["id"] is None and not include_unk:
             continue
         members.append(member)
     cursor.close()
@@ -148,7 +148,7 @@ async def tag_out(ctx: discord.ApplicationContext, card_id: Option(str, "The car
         card_id = get_card_id_from_discord(ctx.author.id, database)
     else:
         if card_id == "All Guests":
-            members = get_members()
+            members = get_members(True)
             for member in members:
                 card_id = member["card_id"]
                 if member['id'] == None:
