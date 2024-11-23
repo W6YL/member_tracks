@@ -4,6 +4,7 @@ import mysql.connector
 
 import threading
 import requests
+import logging
 import hashlib
 import serial
 import socket
@@ -316,7 +317,7 @@ def reader_loop(ser, config, database):
             except KeyboardInterrupt:
                 break
             except Exception as e:
-                print(f"Error: {e}")
+                logging.exception(e)
     except KeyboardInterrupt:
         pass
     finally:
