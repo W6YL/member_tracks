@@ -40,7 +40,7 @@ def check_login_within_timeout(card_id, database, interval_min_injectable):
 
 def card_get_user(card_id, database):
     cursor = database.cursor()
-    cursor.execute("SELECT id, first_name, last_name, callsign, position_in_club, discord_user_id FROM `members` WHERE `card_id` = %s", (card_id,))
+    cursor.execute("SELECT id, first_name, last_name, callsign, position_in_club, discord_user_id, permissions FROM `members` WHERE `card_id` = %s", (card_id,))
     result = cursor.fetchone()
     cursor.close()
     if result is None:
@@ -51,7 +51,8 @@ def card_get_user(card_id, database):
         "last_name": result[2],
         "callsign": result[3],
         "position_in_club": result[4],
-        "discord_user_id": result[5]
+        "discord_user_id": result[5],
+        "permissions": result[6]
     }
 
 def toggle_inside_shack(card_id, database):
@@ -94,6 +95,9 @@ def handle_state_change(ser, *args):
     else:
         print(f"Card Reader {hex(reader_id)} Disconnected")
 
+def has_permission(permissions, perm_index):
+    return permissions & (1 << perm_index) != 0
+
 def card_read(ser, config, database):
     reader_id, num_bytes = ser.read(2)
     data = ser.read(num_bytes)
@@ -112,6 +116,11 @@ def card_read(ser, config, database):
 
     user = card_get_user(card_id, database)
 
+    # If the user is in the database and has the permission to unlock the door, we unlock the door
+    if user is not None:
+        if has_permission(user["permissions"], 0):
+            unlock_door(5)
+
     # If the user has logged in within the timeout, we don't want to do anything
     login_within_timeout = check_login_within_timeout(card_id, database, config["database"]["card_tap_timeout_min"])
     if login_within_timeout is not None:
@@ -128,7 +137,6 @@ def card_read(ser, config, database):
         on_time, stay_length = stay_length_of_user(card_id, database)
         if stay_length is not None:
             add_time_log(card_id, stay_length, on_time, database)
-        unlock_door(10)
 
     if user is not None:
         full_webhook_push(user["first_name"] + " " + user["last_name"], user["callsign"], user["position_in_club"], data, user["discord_user_id"], status, config, stay_length)
@@ -344,6 +352,7 @@ def create_tables(database):
         `email` text DEFAULT NULL,
         `notes` text NOT NULL,
         `discord_user_id` bigint(11) DEFAULT NULL,
+        `permissions` int(11) DEFAULT 0,
         FOREIGN KEY (`card_id`) REFERENCES `cards`(`id`)
     )
     """)
