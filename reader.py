@@ -87,14 +87,15 @@ def unlock_door(delay_time=3):
 #### COMMANDS ####
 
 def handle_state_change(ser, *args):
+    reader_id, = ser.read(1)
     state = bool.from_bytes(ser.read(1), byteorder="big")
     if state:
-        print("Card Reader Connected")
+        print(f"Card Reader {hex(reader_id)} Connected")
     else:
-        print("Card Reader Disconnected")
+        print(f"Card Reader {hex(reader_id)} Disconnected")
 
 def card_read(ser, config, database):
-    num_bytes, = ser.read(1)
+    reader_id, num_bytes = ser.read(2)
     data = ser.read(num_bytes)
 
     # Hash the data to get a card ID, we dont want to store the actual data
