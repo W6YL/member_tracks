@@ -23,20 +23,20 @@ def card_handle_id(data, database):
     cursor.close()
     return result[0], result[1]
 
-def card_add_log(card_id, database):
+def card_add_log(card_id, reader_id, database):
     cursor = database.cursor()
-    cursor.execute("INSERT INTO `logs` (`card_id`, `login_out`) SELECT `id`, `inside_shack` FROM `cards` WHERE `id`=%s", (card_id,))
+    cursor.execute("INSERT INTO `logs` (`card_id`, `login_out`, `reader_id`) SELECT `id`, `inside_shack`, %s FROM `cards` WHERE `id`=%s", (reader_id, card_id))
     database.commit()
     cursor.close()
 
 def check_login_within_timeout(card_id, database, interval_min_injectable):
     cursor = database.cursor()
-    cursor.execute(f"SELECT * FROM `logs` WHERE `timestamp` > (now() - INTERVAL {interval_min_injectable} MINUTE) AND `card_id` = %s ORDER BY `timestamp` DESC LIMIT 1", (card_id,))
+    cursor.execute(f"SELECT `reader_id`,`timestamp` FROM `logs` WHERE `timestamp` > (now() - INTERVAL {interval_min_injectable} MINUTE) AND `card_id` = %s ORDER BY `timestamp` DESC LIMIT 1", (card_id,))
     result = cursor.fetchone()
     cursor.close()
     if result is None:
         return None
-    return result[0] != 0 # if the resulting number of rows is not 0, then the user has logged in within the timeout
+    return True, result[0] # if the resulting number of rows is not 0, then the user has logged in within the timeout
 
 def card_get_user(card_id, database):
     cursor = database.cursor()
@@ -122,15 +122,15 @@ def card_read(ser, config, database):
             unlock_door(5)
 
     # If the user has logged in within the timeout, we don't want to do anything
-    login_within_timeout = check_login_within_timeout(card_id, database, config["database"]["card_tap_timeout_min"])
-    if login_within_timeout is not None:
+    login_within_timeout, last_reader_id = check_login_within_timeout(card_id, database, config["database"]["card_tap_timeout_min"])
+    if login_within_timeout is not None and last_reader_id == reader_id:
         return
     
     # If the user is not in the database, we don't have any information on them
     status = toggle_inside_shack(card_id, database)
     
     # add the log
-    card_add_log(card_id, database)
+    card_add_log(card_id, reader_id, database)
 
     stay_length = None
     if not status:
@@ -339,6 +339,7 @@ def create_tables(database):
         `card_id` INT NOT NULL,
         `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `login_out` BOOLEAN DEFAULT 0,
+        `reader_id` INT DEFAULT 0,
         INDEX `timestamp_FI_1` (`timestamp`),
         FOREIGN KEY (`card_id`) REFERENCES `cards`(`id`)
     )
