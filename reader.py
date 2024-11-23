@@ -116,6 +116,8 @@ def card_read(ser, config, database):
         return
 
     user = card_get_user(card_id, database)
+    if user is None and num_bytes != 6:
+        print(f"Likely erronious card read (not 6 bytes): {data.hex().upper()}, ({card_id})")
 
     # If the user is in the database and has the permission to unlock the door, we unlock the door
     if user is not None:
@@ -142,8 +144,7 @@ def card_read(ser, config, database):
     if user is not None:
         full_webhook_push(user["first_name"] + " " + user["last_name"], user["callsign"], user["position_in_club"], data, user["discord_user_id"], status, config, stay_length)
     else:
-        if num_bytes == 6:
-            unk_webhook_push(data, card_id, status, config, stay_length)
+        unk_webhook_push(data, card_id, status, config, stay_length)
 
 COMMANDS = {
     0x01: handle_state_change,
