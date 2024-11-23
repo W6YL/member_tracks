@@ -36,7 +36,7 @@ def check_login_within_timeout(card_id, database, interval_min_injectable):
     result = cursor.fetchone()
     cursor.close()
     if result is None:
-        return None
+        return None, None
     return True, result[0] # if the resulting number of rows is not 0, then the user has logged in within the timeout
 
 def card_get_user(card_id, database):
