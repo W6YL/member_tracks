@@ -63,6 +63,12 @@ def toggle_inside_shack(card_id, database):
     database.commit()
     return inside_shack == 1
 
+def add_time_log(card_id, stay_length, time_on, database):
+    cursor = database.cursor()
+    cursor.execute("INSERT INTO `card_time_logs` (`card_id`, `stay_length`, `time_on`) VALUES (%s, %s, %s)", (card_id, stay_length, time_on))
+    cursor.close()
+    database.commit()
+
 #### COMMANDS ####
 
 def handle_state_change(ser, *args):
@@ -96,7 +102,13 @@ def card_read(ser, config, database):
     
     # add the log
     card_add_log(card_id, database)
-    
+
+    stay_length = None
+    if not status:
+        on_time, stay_length = stay_length_of_user(card_id, database)
+        if stay_length is not None:
+            add_time_log(card_id, stay_length, on_time, database)
+
     if user is not None:
         full_webhook_push(user["first_name"] + " " + user["last_name"], user["callsign"], user["position_in_club"], data, user["discord_user_id"], status, config, card_id, database)
     else:
@@ -161,7 +173,7 @@ def stay_length_of_user(card_id, database):
     result = cursor.fetchone()
     if result is None:
         return None
-    return (datetime.now() - result[0]).seconds
+    return result[0], (datetime.now() - result[0]).seconds
 
 def current_timestamp():
     time_now = datetime.now()
@@ -193,7 +205,7 @@ def unk_webhook_push(card_id, card_index, in_out, config):
         'username': 'HamShackBot'
     })
 
-def full_webhook_push(name, callsign, position, card_id, discord_id, in_out, config, card_number, database):
+def full_webhook_push(name, callsign, position, card_id, discord_id, in_out, config, time_on):
     member = f'<@{discord_id}>' if discord_id is not None else name
     username, avatar_url = get_discord_user_info(discord_id, config)
     in_out = "in" if in_out else "out"
@@ -223,11 +235,10 @@ def full_webhook_push(name, callsign, position, card_id, discord_id, in_out, con
             'inline': False},
     ]
     if in_out == "out":
-        stay_length = stay_length_of_user(card_number, database)
         fields.append({
             "id": 770098205, 
             "name": "Stay Length", 
-            "value": time.strftime("%H:%M:%S", time.gmtime(stay_length)) if stay_length is not None else "N/A",
+            "value": time.strftime("%H:%M:%S", time.gmtime(time_on)) if time_on is not None else "N/A",
             "inline": True})
 
     requests.post(config["discord"]["webhook_url"], json={
@@ -315,6 +326,14 @@ def create_tables(database):
         FOREIGN KEY (`member_id`) REFERENCES `members`(`id`)
     )
     """)
+    cursor.execute("""CREATE TABLE IF NOT EXISTS `card_time_logs` (
+        `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        `card_id` int(11) NOT NULL,
+        `stay_length` int(11) NOT NULL,
+        `time_on` timestamp NOT NULL DEFAULT current_timestamp(),
+        FOREIGN KEY (`card_id`) REFERENCES `cards`(`id`)
+    ) """)
+    
     database.commit()
 
 def main():
