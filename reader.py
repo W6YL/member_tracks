@@ -93,7 +93,7 @@ def read_card_data_wiegand(data):
         card_code = (data >> 1) & 0xFFFFF
         facility_code = (data >> 24) & 0x1FFF
         return card_code, facility_code 
-    elif data_len == 4:
+    elif data_len == 3:
         card_code = data & 0xFFFF
         facility_code = data >> 16
         return card_code, facility_code
