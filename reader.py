@@ -64,7 +64,7 @@ def find_port():
     arduino_port_search_list = ["Arduino", "CH340", "usbserial"]
 
     ports = list(serial.tools.list_ports.comports())
-    ourport = [port for port in ports if any(arduino_port in port.device for arduino_port in arduino_port_search_list)]
+    ourport = [port for port in ports if any(arduino_port in port.description for arduino_port in arduino_port_search_list)]
     if len(ourport) == 0:
         return None
     ourport = ourport[0].device
