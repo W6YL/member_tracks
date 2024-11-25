@@ -86,6 +86,12 @@ def _unlock_door(delay_time=3):
 def unlock_door(delay_time=3):
     threading.Thread(target=_unlock_door, args=(delay_time,), daemon=True).start()
 
+def read_card_data_wiegand(data):
+    data = int.from_bytes(data, byteorder="big")
+    card_code = (data >> 1) & 0xFFFFF
+    facility_code = (data >> 24) & 0x1FFF
+    return card_code, facility_code 
+
 #### COMMANDS ####
 
 def handle_state_change(ser, *args):
@@ -102,6 +108,11 @@ def has_permission(permissions, perm_index):
 def card_read(ser, config, database):
     reader_id, num_bytes = ser.read(2)
     data = ser.read(num_bytes)
+    card_code, facility_code = read_card_data_wiegand(data)
+
+    # TODO: DEBUG - REMOVE LATER
+    print("Card Code: ", card_code)
+    print("Facility Code: ", facility_code)
 
     # Hash the data to get a card ID, we dont want to store the actual data
     hash = hashlib.sha256()
