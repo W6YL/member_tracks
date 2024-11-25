@@ -2,16 +2,18 @@ from datetime import datetime, timezone
 import serial.tools.list_ports
 import mysql.connector
 
+import threading
 import requests
 import hashlib
 import serial
+import socket
 import json
 import time
 import os
 
 def card_handle_id(data, database):
     cursor = database.cursor()
-    cursor.execute("SELECT `id` FROM `cards` WHERE `card_data` = %s", (data,))
+    cursor.execute("SELECT `id`,`card_type` FROM `cards` WHERE `card_data` = %s", (data,))
     result = cursor.fetchone()
     if result is None:
         cursor.execute("INSERT INTO `cards` (`card_data`) VALUES (%s)", (data,))
@@ -19,7 +21,7 @@ def card_handle_id(data, database):
         cursor.close()
         return cursor.lastrowid
     cursor.close()
-    return result[0]
+    return result[0], result[1]
 
 def card_add_log(card_id, database):
     cursor = database.cursor()
@@ -71,6 +73,14 @@ def add_time_log(card_id, stay_length, time_on, database):
     cursor.close()
     database.commit()
 
+def unlock_door(delay_time=3):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect(("127.0.0.1", 46099))
+        s.send(b"\x01\x01")
+        time.sleep(delay_time)
+        s.send(b"\x01\x00\x0a")
+        s.close()
+
 #### COMMANDS ####
 
 def handle_state_change(ser, *args):
@@ -89,9 +99,13 @@ def card_read(ser, config, database):
     hash.update(data)
     data = hash.digest()
 
-    card_id = card_handle_id(data, database)
+    card_id, card_type = card_handle_id(data, database)
 
     print(f"Card ID: {card_id}, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    if card_type == 1:
+        unlock_door()
+        return
+
     user = card_get_user(card_id, database)
 
     # If the user has logged in within the timeout, we don't want to do anything
