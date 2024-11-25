@@ -115,7 +115,7 @@ def toggle_inside_shack(card_id, database):
 def get_members_from_db(ctx: discord.AutocompleteContext):
     if config["discord"]["admin_role"] is None:
         return ["unauth"]
-    if not ctx.interaction.user.has_role(config["discord"]["admin_role"]):
+    if ctx.interaction.user.get_role(config["discord"]["admin_role"]) is None:
         return ["unauth"]
     
     cursor = database.cursor()
