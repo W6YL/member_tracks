@@ -161,7 +161,7 @@ def stay_length_of_user(card_id, database):
     result = cursor.fetchone()
     if result is None:
         return None
-    return (datetime.now() - result[0])
+    return (datetime.now() - result[0]).seconds
 
 def current_timestamp():
     time_now = datetime.now()
@@ -226,7 +226,7 @@ def full_webhook_push(name, callsign, position, card_id, discord_id, in_out, con
         fields.append({
             "id": 770098205, 
             "name": "Stay Length", 
-            "value": time.strftime("%H:%M:%S", stay_length) if stay_length is not None else "N/A",
+            "value": time.strftime("%H:%M:%S", time.gmtime(stay_length)) if stay_length is not None else "N/A",
             "inline": True})
 
     requests.post(config["discord"]["webhook_url"], json={
