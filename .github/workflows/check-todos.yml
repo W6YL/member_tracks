@@ -1,0 +1,24 @@
+name: Check for TODO Comments
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-todos:
+    runs-on: ubuntu-latest
+    steps:
+    # Step 1: Checkout the code
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Step 2: Search for TODO comments
+    - name: Search for TODO comments
+      run: |
+        # Search for "TODO:" in all files except GitHub workflow files
+        if grep -r --exclude-dir=.git --exclude="*.yml" "TODO:" .; then
+          echo "TODOs found in the code. Please resolve them before merging."
+          exit 1
+        else
+          echo "No TODOs found. Good to go!"
+        fi
