@@ -87,10 +87,17 @@ def unlock_door(delay_time=3):
     threading.Thread(target=_unlock_door, args=(delay_time,), daemon=True).start()
 
 def read_card_data_wiegand(data):
+    data_len = len(data)
     data = int.from_bytes(data, byteorder="big")
-    card_code = (data >> 1) & 0xFFFFF
-    facility_code = (data >> 24) & 0x1FFF
-    return card_code, facility_code 
+    if data_len == 6:
+        card_code = (data >> 1) & 0xFFFFF
+        facility_code = (data >> 24) & 0x1FFF
+        return card_code, facility_code 
+    elif data_len == 4:
+        card_code = data & 0xFFFF
+        facility_code = data >> 16
+        return card_code, facility_code
+    return 0, 0
 
 #### COMMANDS ####
 
