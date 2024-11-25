@@ -35,9 +35,9 @@ def generate_members_embed(members):
         for member in chunk:
             last_login = member["last_timestamp"].strftime("%s")
             if member["privacy_enabled"]:
-                embed.add_field(name=f"[Name Redacted]", value=f"Privacy Enabled\nLogged in <t:{last_login}:R>", inline=True)
+                embed.add_field(name=f"[Name Redacted]", value=f"Logged in <t:{last_login}:R>", inline=True)
             else:
-                embed.add_field(name=f"{member['first_name']} {member['last_name'][:1]}.", value=f"Logged in <t:{last_login}:R>", inline=True)
+                embed.add_field(name=f"{member['first_name']} {member['last_name'][:1]}.", value=f"{member['position_in_club'].title()}\nLogged in <t:{last_login}:R>", inline=True)
         embed.add_field(name="\u200b", value="\u200b")
     return embed
 
