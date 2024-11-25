@@ -124,6 +124,7 @@ def card_read(ser, config, database):
     hash.update(data)
     data = hash.digest()
 
+    # TODO: Before merging into main branch, remove all logging of raw card data
     card_id, card_type = card_handle_id(data, database)
 
     print(f"Card ID: {card_id}, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}, Reader ID: {reader_id}, Card DATA: {og_data.hex().upper()}, Facility Code: {facility_code}, Card Code: {card_code}")
