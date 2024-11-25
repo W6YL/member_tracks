@@ -58,7 +58,7 @@ def card_read(ser, config, database):
     if user is not None:
         full_webhook_push(user["first_name"] + " " + user["last_name"], user["callsign"], user["position_in_club"], data, user["discord_user_id"], config)
     else:
-        pass
+        unk_webhook_push(data, config)
 
 COMMANDS = {
     0x01: handle_state_change,
@@ -115,6 +115,26 @@ def current_timestamp():
     dt_local = time_now.astimezone()
     dt_utc = dt_local.astimezone(timezone.utc)
     return dt_utc.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+
+def unk_webhook_push(card_id, config):
+    requests.post(config["discord"]["webhook_url"], json={
+        'content': '', 
+        'tts': False, 
+        'embeds': [
+            {'id': 15409955, 
+             'title': 'Member Login', 
+             'description': 'A member has logged in to the hamshack (Unregistered Card)', 
+             'color': 2326507, 
+             'fields': [
+                 {'id': 974455510, 'name': 'CARD ID', 'value': card_id.hex().upper()}
+             ], 
+             'author': {'icon_url': 'https://cdn.discordapp.com/embed/avatars/0.png', 'name': 'Unknown User'}, 
+             'timestamp': '2024-11-21T05:59:00.000Z'}
+        ], 
+        'components': [], 
+        'actions': {}, 
+        'username': 'HamShackBot'
+    })
 
 def full_webhook_push(name, callsign, position, card_id, discord_id, config):
     member = f'<@{discord_id}>' if discord_id is not None else 'A member'
