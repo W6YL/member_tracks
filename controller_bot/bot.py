@@ -124,11 +124,15 @@ def get_members_from_db(ctx: discord.AutocompleteContext):
     cursor.close()
     
     member_list = []
+    guests_present = False
     for member in members:
         m_name =f"{member[1]} {member[2]} ({member[0]})"
         if member[1] is None or member[2] is None:
             m_name = f"Guest User ({member[0]})"
+            guests_present = True
         member_list.append(m_name)
+    if guests_present:
+        member_list.append("All Guests")
     return member_list
 
 @bot.slash_command()
@@ -143,6 +147,20 @@ async def tag_out(ctx: discord.ApplicationContext, card_id: Option(str, "The car
     if card_id is None:
         card_id = get_card_id_from_discord(ctx.author.id, database)
     else:
+        if card_id == "All Guests":
+            members = get_members()
+            for member in members:
+                card_id = member["card_id"]
+                if member['id'] == None:
+                    status, card_data = toggle_inside_shack(card_id, database)
+                    if status:
+                        on_time, stay_length = stay_length_of_user(card_id, database)
+                        add_time_log(card_id, stay_length, on_time, database)
+                        user = card_get_user(card_id, database)
+                        unk_webhook_push(card_data, card_id, False, config, stay_length)
+            await ctx.respond("You have successfully tagged out all guests.")
+            return
+        
         try:
             card_id = int(card_id.split("(")[1].split(")")[0])
         except:
