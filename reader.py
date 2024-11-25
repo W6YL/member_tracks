@@ -118,6 +118,7 @@ def card_read(ser, config, database):
     user = card_get_user(card_id, database)
     if user is None and num_bytes != 6:
         print(f"Likely erronious card read (not 6 bytes): {data[:8].hex().upper()}, ({card_id})")
+        return
 
     # If the user is in the database and has the permission to unlock the door, we unlock the door
     if user is not None:
