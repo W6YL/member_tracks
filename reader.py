@@ -124,11 +124,11 @@ def card_read(ser, config, database):
     user = card_get_user(card_id, database)
     if user is None:
         if num_bytes != 6:
-            print(f"Likely erronious card read (not 6 bytes): {data[:8].hex().upper()}, ({card_id})")
+            print(f"Likely erroneous card read (not 6 bytes): {data[:8].hex().upper()}, ({card_id})")
             return
         _, facility_code = read_card_data_wiegand(data)
         if facility_code != config["facility_code"]:
-            print(f"Likely erronious card read (Wrong facility code [{facility_code}]): {data[:8].hex().upper()}, ({card_id})")
+            print(f"Likely erroneous card read (Wrong facility code [{facility_code}]): {data[:8].hex().upper()}, ({card_id})")
             return
 
     # If the user is in the database and has the permission to unlock the door, we unlock the door
