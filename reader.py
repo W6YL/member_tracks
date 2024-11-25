@@ -137,7 +137,8 @@ def get_config():
         "discord": {
             "webhook_url": None,
             "api_version": 10,
-            "discord_token": None
+            "discord_token": None,
+            "admin_role": None
         }
     }
     if not os.path.exists("config.json"):
