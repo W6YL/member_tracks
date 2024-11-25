@@ -108,11 +108,6 @@ def has_permission(permissions, perm_index):
 def card_read(ser, config, database):
     reader_id, num_bytes = ser.read(2)
     data = ser.read(num_bytes)
-    card_code, facility_code = read_card_data_wiegand(data)
-
-    # TODO: DEBUG - REMOVE LATER
-    print("Card Code: ", card_code)
-    print("Facility Code: ", facility_code)
 
     # Hash the data to get a card ID, we dont want to store the actual data
     hash = hashlib.sha256()
@@ -127,9 +122,14 @@ def card_read(ser, config, database):
         return
 
     user = card_get_user(card_id, database)
-    if user is None and num_bytes != 6:
-        print(f"Likely erronious card read (not 6 bytes): {data[:8].hex().upper()}, ({card_id})")
-        return
+    if user is None:
+        if num_bytes != 6:
+            print(f"Likely erronious card read (not 6 bytes): {data[:8].hex().upper()}, ({card_id})")
+            return
+        _, facility_code = read_card_data_wiegand(data)
+        if facility_code != config["facility_code"]:
+            print(f"Likely erronious card read (Wrong facility code [{facility_code}]): {data[:8].hex().upper()}, ({card_id})")
+            return
 
     # If the user is in the database and has the permission to unlock the door, we unlock the door
     if user is not None:
@@ -183,7 +183,8 @@ def get_config():
             "api_version": 10,
             "discord_token": None,
             "admin_role": None
-        }
+        },
+        "facility_code": 6073
     }
     if not os.path.exists("config.json"):
         json.dump(config, open("config.json", "w"), indent=2)
