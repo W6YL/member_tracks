@@ -53,6 +53,9 @@ def get_config():
             "username": None,
             "password": None,
             "database": None
+        },
+        "arduino": {
+            "port": None
         }
     }
     if not os.path.exists("config.json"):
@@ -60,7 +63,10 @@ def get_config():
         return config
     return json.load(open("config.json"))
 
-def find_port():
+def find_port(config):
+    if config["arduino"]["port"] is not None:
+        return config["arduino"]["port"]
+    
     arduino_port_search_list = ["Arduino", "CH340", "usbserial"]
 
     ports = list(serial.tools.list_ports.comports())
@@ -106,8 +112,8 @@ def create_tables(database):
     database.commit()
 
 def main():
-    arduino_port = find_port()
     config = get_config()
+    arduino_port = find_port(config)
 
     # Check if we found the arduino port
     if arduino_port is None:
