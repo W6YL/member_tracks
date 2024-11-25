@@ -3,7 +3,7 @@ import discord
 import json
 
 bot = discord.Bot()
-config = json.load(open("../config.json"))
+config = json.load(open("config.json"))
 
 database = mysql.connector.connect(
     host=config["database"]["host"],

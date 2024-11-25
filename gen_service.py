@@ -29,7 +29,7 @@ After=multi-user.target
 
 [Service]
 Type=simple
-WorkingDirectory={dir_path}/controller_bot
+WorkingDirectory={dir_path}
 ExecStart={exec_path} {dir_path}/controller_bot/bot.py
 Restart=on-failure
 
