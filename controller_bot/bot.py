@@ -125,13 +125,19 @@ def get_members_from_db(ctx: discord.AutocompleteContext):
     cursor.close()
     
     member_list = []
+    guest_list = []
+
     guests_present = False
     for member in members:
         m_name =f"{member[1]} {member[2]} ({member[0]})"
         if member[1] is None or member[2] is None:
             m_name = f"Guest User ({member[0]})"
+            guest_list.append(m_name)
             guests_present = True
+            continue
         member_list.append(m_name)
+    
+    member_list.extend(guest_list)
     if guests_present:
         member_list.append("All Guests")
     return member_list
