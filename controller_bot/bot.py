@@ -115,7 +115,7 @@ def toggle_inside_shack(card_id, database):
 def get_members_from_db(ctx: discord.ApplicationContext):
     if config["discord"]["admin_role"] is None:
         return ["unauth"]
-    if not ctx.author.has_role(config["discord"]["admin_role"]):
+    if not ctx.interaction.user.has_role(config["discord"]["admin_role"]):
         return ["unauth"]
     
     cursor = database.cursor()
@@ -136,7 +136,7 @@ async def shack_members(ctx):
 
 # TODO: this
 @bot.slash_command()
-async def tag_out(ctx: discord.ApplicationContext, member: Option(str, "The card ID to tag out of the shack.", required=False, autocomplete=get_members_from_db)):
+async def tag_out(ctx: discord.ApplicationContext, card_id: Option(str, "The card ID to tag out of the shack.", required=False, autocomplete=get_members_from_db)):
     if card_id is None:
         card_id = get_card_id_from_discord(ctx.author.id, database)
     else:
