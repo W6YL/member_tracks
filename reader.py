@@ -56,7 +56,7 @@ def get_config():
         }
     }
     if not os.path.exists("config.json"):
-        json.dump(config, open("config.json", "w"))
+        json.dump(config, open("config.json", "w"), indent=2)
         return config
     return json.load(open("config.json"))
 
