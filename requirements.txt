@@ -1,2 +1,3 @@
 pyserial
 mysql-connector-python
+requests
