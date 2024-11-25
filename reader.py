@@ -18,6 +18,7 @@ def card_handle_id(data, database):
         database.commit()
         cursor.close()
         return cursor.lastrowid
+    cursor.close()
     return result[0]
 
 def card_add_log(card_id, database):
@@ -56,6 +57,7 @@ def toggle_inside_shack(card_id, database):
     cursor.execute("SELECT `inside_shack` FROM `cards` WHERE `id` = %s", (card_id,))
     result = cursor.fetchone()
     if result is None:
+        cursor.close()
         return None
     inside_shack = 0 if result[0] else 1
     cursor.execute("UPDATE `cards` SET `inside_shack` = %s WHERE `id` = %s", (inside_shack, card_id))
@@ -345,6 +347,7 @@ def create_tables(database):
         FOREIGN KEY (`card_id`) REFERENCES `cards`(`id`)
     ) """)
     
+    cursor.close()
     database.commit()
 
 def main():
