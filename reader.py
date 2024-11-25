@@ -124,6 +124,7 @@ def card_read(ser, config, database):
         on_time, stay_length = stay_length_of_user(card_id, database)
         if stay_length is not None:
             add_time_log(card_id, stay_length, on_time, database)
+        unlock_door(10)
 
     if user is not None:
         full_webhook_push(user["first_name"] + " " + user["last_name"], user["callsign"], user["position_in_club"], data, user["discord_user_id"], status, config, stay_length)
