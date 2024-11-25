@@ -24,7 +24,7 @@ def card_add_log(card_id, database):
 #### COMMANDS ####
 
 def handle_state_change(ser, _):
-    state = bool.from_bytes(ser.read(1))
+    state = bool.from_bytes(ser.read(1), byteorder="big")
     if state:
         print("Card Reader Connected")
     else:
