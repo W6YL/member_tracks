@@ -168,7 +168,7 @@ async def open_door(ctx):
         await ctx.respond("You do not have permission to open the door.")
         return
     
-    unlock_door()
+    unlock_door(10)
     await ctx.respond("The door has been opened.")
 
 @bot.slash_command()
