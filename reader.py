@@ -116,18 +116,15 @@ def card_read(ser, config, database):
     reader_id, num_bytes = ser.read(2)
     data = ser.read(num_bytes)
 
-    card_code, facility_code = read_card_data_wiegand(data)
-    og_data = data
-
     # Hash the data to get a card ID, we dont want to store the actual data
     hash = hashlib.sha256()
     hash.update(data)
     data = hash.digest()
 
-    # TODO: Before merging into main branch, remove all logging of raw card data
     card_id, card_type = card_handle_id(data, database)
 
-    print(f"Card ID: {card_id}, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}, Reader ID: {reader_id}, Card DATA: {og_data.hex().upper()}, Facility Code: {facility_code}, Card Code: {card_code}")
+    print(f"Card ID: {card_id}, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}, Reader ID: {reader_id}")
+    
     if card_type == 1:
         unlock_door()
         return

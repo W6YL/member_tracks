@@ -177,7 +177,6 @@ async def shack_members(ctx):
     embed = generate_members_embed(members)
     await ctx.respond(embed=embed)
 
-# TODO: this
 @bot.slash_command()
 async def tag_out(ctx: discord.ApplicationContext, card_id: Option(str, "The card ID to tag out of the shack.", required=False, autocomplete=get_members_from_db)): # type: ignore
     if card_id is None:
