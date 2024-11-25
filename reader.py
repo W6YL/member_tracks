@@ -143,7 +143,7 @@ def full_webhook_push(name, callsign, position, card_id, discord_id, config):
     member = f'<@{discord_id}>' if discord_id is not None else 'A member'
     username, avatar_url = get_discord_user_info(discord_id, config)
     if username is None:
-        username = "Unknown User"
+        username = name
         member = "A member"
         avatar_url = "https://cdn.discordapp.com/embed/avatars/0.png"
 
