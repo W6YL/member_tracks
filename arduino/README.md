@@ -3,6 +3,7 @@
 The arduino is used in-between the HID ThinLine II reader, and the computer, as an interface to convert the data from Wiegand format to a custom Serial format readable by a computer. To decode this data, we will be using the library https://github.com/paulo-raca/YetAnotherArduinoWiegandLibrary. 
 
 ### Protocol
+This is the protocol definition for the serial communications from Arduino -> Computer
 
 Each packet begins with a 1 byte header indicating the packet type, providing up to 256 possible types.
 Below is a table of each packet type and a brief description of what it does.
