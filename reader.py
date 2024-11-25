@@ -71,10 +71,13 @@ def card_read(ser, config, database):
     data = ser.read(num_bytes)
 
     card_id = card_handle_id(data, database)
+    login_within_timeout = check_login_within_timeout(card_id, database, config["database"]["card_tap_timeout_min"])
+
     card_add_log(card_id, database)
     print(f"Card ID: {card_id}, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
     user = card_get_user(card_id, database)
-    login_within_timeout = check_login_within_timeout(card_id, database, config["database"]["card_tap_timeout_min"])
+
+    # If the user has logged in within the timeout, we don't want to do anything
     if login_within_timeout is not None:
         return
     
