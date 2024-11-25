@@ -98,7 +98,7 @@ def card_read(ser, config, database):
     card_add_log(card_id, database)
     
     if user is not None:
-        full_webhook_push(user["first_name"] + " " + user["last_name"], user["callsign"], user["position_in_club"], data, user["discord_user_id"], status, config)
+        full_webhook_push(user["first_name"] + " " + user["last_name"], user["callsign"], user["position_in_club"], data, user["discord_user_id"], status, config, database)
     else:
         unk_webhook_push(data, card_id, status, config)
 
@@ -193,7 +193,7 @@ def unk_webhook_push(card_id, card_index, in_out, config):
         'username': 'HamShackBot'
     })
 
-def full_webhook_push(name, callsign, position, card_id, discord_id, in_out, config):
+def full_webhook_push(name, callsign, position, card_id, discord_id, in_out, config, database):
     member = f'<@{discord_id}>' if discord_id is not None else name
     username, avatar_url = get_discord_user_info(discord_id, config)
     in_out = "in" if in_out else "out"
@@ -222,7 +222,7 @@ def full_webhook_push(name, callsign, position, card_id, discord_id, in_out, con
             'value': card_id[:8].hex().upper()}
     ]
     if in_out == "out":
-        stay_length = stay_length_of_user(card_id, config)
+        stay_length = stay_length_of_user(card_id, database)
         fields.append({"id": 770098205, "name": "Stay Length", "value": time.strftime("%H:%M:%S", stay_length), "inline": True})
 
     requests.post(config["discord"]["webhook_url"], json={
