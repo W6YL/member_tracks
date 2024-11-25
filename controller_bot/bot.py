@@ -33,6 +33,8 @@ def generate_members_embed(members):
     for i in range(0, len(members), 2):
         chunk = members[i:i+2]
         for member in chunk:
+            if member["id"] is None:
+                continue
             last_login = member["last_timestamp"].strftime("%s")
             embed.add_field(name=f"{member['first_name']} {member['last_name'][:1]}.", value=f"{member['position_in_club']}\nLogged in <t:{last_login}:R>", inline=True)
         embed.add_field(name="\u200b", value="\u200b")
