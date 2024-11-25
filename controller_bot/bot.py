@@ -103,10 +103,12 @@ def toggle_inside_shack(card_id, database):
     cursor = database.cursor()
     cursor.execute("SELECT `inside_shack`,`card_data` FROM `cards` WHERE `id` = %s", (card_id,))
     result = cursor.fetchone()
-    cursor.close()
+    
     if result is None:
+        cursor.close()
         return False, None
     if result[0] == 0:
+        cursor.close()
         return False, result[1]
     
     cursor.execute("UPDATE `cards` SET `inside_shack` = 0 WHERE `id` = %s", (card_id,))
