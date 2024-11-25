@@ -311,8 +311,12 @@ def reader_loop(ser, config, database):
                 # Flush the buffer
                 while ser.in_waiting > 0:
                     ser.read(1)
-
-            COMMANDS[command](ser, config, database)
+            try:
+                COMMANDS[command](ser, config, database)
+            except KeyboardInterrupt:
+                break
+            except Exception as e:
+                print(f"Error: {e}")
     except KeyboardInterrupt:
         pass
     finally:
