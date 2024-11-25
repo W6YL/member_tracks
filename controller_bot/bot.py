@@ -67,7 +67,7 @@ WHERE
     cards.inside_shack = 1""")
     members = []
     for member in cursor.fetchall():
-        if member["id"] is None and not include_unk:
+        if member["id"] is None and include_unk:
             continue
         members.append(member)
     cursor.close()
