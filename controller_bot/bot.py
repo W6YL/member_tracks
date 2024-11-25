@@ -52,7 +52,7 @@ def generate_members_embed(members):
 def get_members(include_unk=False):
     cursor = database.cursor(dictionary=True)
     cursor.execute("""SELECT
-    cards.id AS card_id,
+    cards.id AS card_id_orig,
     members.*,
     (SELECT logs.timestamp 
      FROM logs 
@@ -151,7 +151,7 @@ async def tag_out(ctx: discord.ApplicationContext, card_id: Option(str, "The car
         if card_id == "All Guests":
             members = get_members(True)
             for member in members:
-                card_id = member["card_id"]
+                card_id = member["card_id_orig"]
                 if member['id'] == None:
                     status, card_data = toggle_inside_shack(card_id, database)
                     if status:
