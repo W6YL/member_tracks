@@ -298,7 +298,8 @@ def create_tables(database):
     CREATE TABLE IF NOT EXISTS `cards` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `inside_shack` int DEFAULT 0,
-        `card_data` BLOB NOT NULL
+        `card_data` BLOB NOT NULL,
+        `card_type` INT DEFAULT 0
     )
     """)
     cursor.execute("""
