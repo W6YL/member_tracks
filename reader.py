@@ -58,7 +58,7 @@ def card_read(ser, config, database):
     if user is not None:
         full_webhook_push(user["first_name"] + " " + user["last_name"], user["callsign"], user["position_in_club"], data, user["discord_user_id"], config)
     else:
-        unk_webhook_push(data, config)
+        unk_webhook_push(data, card_id, config)
 
 COMMANDS = {
     0x01: handle_state_change,
@@ -116,7 +116,7 @@ def current_timestamp():
     dt_utc = dt_local.astimezone(timezone.utc)
     return dt_utc.strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
-def unk_webhook_push(card_id, config):
+def unk_webhook_push(card_id, card_index, config):
     requests.post(config["discord"]["webhook_url"], json={
         'content': '', 
         'tts': False, 
@@ -126,7 +126,8 @@ def unk_webhook_push(card_id, config):
              'description': 'A member has logged in to the hamshack (Unregistered Card)', 
              'color': 15409955, 
              'fields': [
-                 {'id': 974455510, 'name': 'CARD ID', 'value': card_id.hex().upper()}
+                 {'id': 974455510, 'name': 'CARD ID', 'value': card_id.hex().upper(), 'inline': True},
+                 {"id": 770098205, "name": "CARD INDEX", "value": card_index, "inline": True}
              ], 
              'author': {'icon_url': 'https://cdn.discordapp.com/embed/avatars/0.png', 'name': 'Unknown User'}, 
              'timestamp': '2024-11-21T05:59:00.000Z'}
