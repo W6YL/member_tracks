@@ -73,13 +73,16 @@ def add_time_log(card_id, stay_length, time_on, database):
     cursor.close()
     database.commit()
 
-def unlock_door(delay_time=3):
+def _unlock_door(delay_time=3):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect(("127.0.0.1", 46099))
         s.send(b"\x01\x01")
         time.sleep(delay_time)
         s.send(b"\x01\x00\x0a")
         s.close()
+
+def unlock_door(delay_time=3):
+    threading.Thread(target=_unlock_door, args=(delay_time,), daemon=True).start()
 
 #### COMMANDS ####
 
