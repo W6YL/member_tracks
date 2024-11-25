@@ -15,6 +15,7 @@ def card_handle_id(data, database):
     if result is None:
         cursor.execute("INSERT INTO `cards` (`card_data`) VALUES (%s)", (data,))
         database.commit()
+        cursor.close()
         return cursor.lastrowid
     return result[0]
 
@@ -22,11 +23,13 @@ def card_add_log(card_id, database):
     cursor = database.cursor()
     cursor.execute("INSERT INTO `logs` (`card_id`, `login_out`) SELECT `id`, `inside_shack` FROM `cards` WHERE `id`=%s", (card_id,))
     database.commit()
+    cursor.close()
 
 def check_login_within_timeout(card_id, database, interval_min_injectable):
     cursor = database.cursor()
     cursor.execute(f"SELECT * FROM `logs` WHERE `timestamp` > (now() - INTERVAL {interval_min_injectable} MINUTE) AND `card_id` = %s ORDER BY `timestamp` DESC LIMIT 1", (card_id,))
     result = cursor.fetchone()
+    cursor.close()
     if result is None:
         return None
     return result[0] != 0 # if the resulting number of rows is not 0, then the user has logged in within the timeout
@@ -35,6 +38,7 @@ def card_get_user(card_id, database):
     cursor = database.cursor()
     cursor.execute("SELECT id, first_name, last_name, callsign, position_in_club, discord_user_id FROM `members` WHERE `card_id` = %s", (card_id,))
     result = cursor.fetchone()
+    cursor.close()
     if result is None:
         return None
     return {
@@ -54,6 +58,7 @@ def toggle_inside_shack(card_id, database):
         return None
     inside_shack = 0 if result[0] else 1
     cursor.execute("UPDATE `cards` SET `inside_shack` = %s WHERE `id` = %s", (inside_shack, card_id))
+    cursor.close()
     database.commit()
     return inside_shack == 1
 
