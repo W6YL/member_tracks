@@ -71,18 +71,20 @@ def card_read(ser, config, database):
     data = ser.read(num_bytes)
 
     card_id = card_handle_id(data, database)
-    login_within_timeout = check_login_within_timeout(card_id, database, config["database"]["card_tap_timeout_min"])
 
-    card_add_log(card_id, database)
     print(f"Card ID: {card_id}, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
     user = card_get_user(card_id, database)
 
     # If the user has logged in within the timeout, we don't want to do anything
+    login_within_timeout = check_login_within_timeout(card_id, database, config["database"]["card_tap_timeout_min"])
     if login_within_timeout is not None:
         return
     
     # If the user is not in the database, we don't have any information on them
     status = toggle_inside_shack(card_id, database)
+    
+    # add the log
+    card_add_log(card_id, database)
     
     if user is not None:
         full_webhook_push(user["first_name"] + " " + user["last_name"], user["callsign"], user["position_in_club"], data, user["discord_user_id"], status, config)
