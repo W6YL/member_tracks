@@ -2,6 +2,10 @@ import mysql.connector
 import discord
 import json
 
+from datetime import datetime
+from discord.commands import Option
+from ..reader import full_webhook_push, unk_webhook_push, card_get_user, stay_length_of_user, add_time_log
+
 bot = discord.Bot()
 config = json.load(open("../config.json"))
 
@@ -65,10 +69,69 @@ WHERE
     cursor.close()
     return members
 
+def card_get_user(card_id, database):
+    cursor = database.cursor()
+    cursor.execute("SELECT id, first_name, last_name, callsign, position_in_club, discord_user_id FROM `members` WHERE `card_id` = %s", (card_id,))
+    result = cursor.fetchone()
+    cursor.close()
+    if result is None:
+        return None
+    return {
+        "id": result[0],
+        "first_name": result[1],
+        "last_name": result[2],
+        "callsign": result[3],
+        "position_in_club": result[4],
+        "discord_user_id": result[5]
+    }
+
+def get_card_id_from_discord(discord_id, database):
+    cursor = database.cursor()
+    cursor.execute("SELECT card_id FROM `members` WHERE `discord_user_id` = %s", (discord_id,))
+    result = cursor.fetchone()
+    cursor.close()
+    if result is None:
+        return None
+    return result[0]
+
+def toggle_inside_shack(card_id, database):
+    cursor = database.cursor()
+    cursor.execute("SELECT `inside_shack`,`card_data` FROM `cards` WHERE `id` = %s", (card_id,))
+    result = cursor.fetchone()
+    if result is None:
+        return False, None
+    if result[0] == 0:
+        return False, result[1]
+    
+    cursor.execute("UPDATE `cards` SET `inside_shack` = 0 WHERE `id` = %s", (card_id,))
+    cursor.close()
+    database.commit()
+    return True, result[1]
+
 @bot.slash_command()
 async def shack_members(ctx):
     members = get_members()
     embed = generate_members_embed(members)
     await ctx.respond(embed=embed)
+
+# TODO: this
+@bot.slash_command()
+async def tag_out(ctx, card_id: Option(int, "The card ID to tag out of the shack.", required=False)):
+    if card_id is None:
+        card_id = get_card_id_from_discord(ctx.author.id, database)
+    status, card_data = toggle_inside_shack(card_id, database)
+
+    if status:
+        on_time, stay_length = stay_length_of_user(card_id, database)
+        add_time_log(card_id, stay_length, on_time, database)
+        user = card_get_user(card_id, database)
+        if user is not None:
+            full_webhook_push(user["first_name"] + " " + user["last_name"], user["callsign"], user["position_in_club"], card_data, user["discord_user_id"], False, config, stay_length)
+        else:
+            unk_webhook_push(card_data, card_id, False, config, stay_length)
+        await ctx.respond("You have successfully tagged out of the shack.")
+    else:
+        await ctx.respond("You are not currently tagged in.")
+    
 
 bot.run(config["discord"]["discord_token"])
