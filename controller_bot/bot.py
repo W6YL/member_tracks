@@ -277,6 +277,9 @@ async def leaderboard(ctx: discord.ApplicationContext):
         formatted_time = display_time(user["total_time"])
         emoji = get_emoji_from_rank(i)
         embed_description += f"{emoji} {name} - {formatted_time}\n"
+        if i == 2:
+            embed_description += "\n"
+            
     embed.description = embed_description
     await ctx.respond(embed=embed)
         
