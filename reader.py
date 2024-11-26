@@ -101,13 +101,15 @@ def read_card_data_wiegand(data):
 
 #### COMMANDS ####
 
-def handle_state_change(ser, *args):
+def handle_state_change(ser: serial.Serial, *args):
     reader_id, = ser.read(1)
     state = bool.from_bytes(ser.read(1), byteorder="big")
     if state:
         print(f"Card Reader {hex(reader_id)} Connected")
     else:
         print(f"Card Reader {hex(reader_id)} Disconnected")
+        ser.close()
+        ser.open()
 
 def has_permission(permissions, perm_index):
     return permissions & (1 << perm_index) != 0
@@ -323,7 +325,7 @@ def full_webhook_push(name, callsign, position, card_id, discord_id, in_out, con
         'actions': {},
         'username': 'HamShackBot'})
 
-def reader_loop(ser, config, database):
+def reader_loop(ser: serial.Serial, config, database):
     try:
         while True:
             time.sleep(0.5)
