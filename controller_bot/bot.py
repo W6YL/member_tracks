@@ -159,6 +159,40 @@ def _unlock_door(delay_time=3):
 def unlock_door(delay_time=3):
     threading.Thread(target=_unlock_door, args=(delay_time,), daemon=True).start()
 
+def get_ranked_list_users_by_time(database):
+    cursor = database.cursor(dictionary=True)
+    # This is a really fucked up query, but it works lol
+    cursor.execute("SELECT SUM(stay_length) AS total_time, members.first_name, members.last_name, members.discord_user_id, members.privacy_enabled FROM card_time_logs LEFT JOIN members ON members.card_id=card_time_logs.card_id WHERE members.id IS NOT NULL GROUP BY card_time_logs.card_id ORDER BY total_time DESC")
+    result = cursor.fetchall()
+    cursor.close()
+    return result
+
+# https://stackoverflow.com/a/24542445
+def display_time(seconds, granularity=2):
+    result = []
+    intervals = (
+        ('weeks', 604800),  # 60 * 60 * 24 * 7
+        ('days', 86400),    # 60 * 60 * 24
+        ('hours', 3600),    # 60 * 60
+        ('minutes', 60),
+        ('seconds', 1),
+    )
+
+    for name, count in intervals:
+        value = seconds // count
+        if value:
+            seconds -= value * count
+            if value == 1:
+                name = name.rstrip('s')
+            result.append("{} {}".format(value, name))
+    return ', '.join(result[:granularity])
+
+def get_emoji_from_rank(rank_num):
+    ranks = ["🥇", "🥈", "🥉"]
+    if rank_num >= 3:
+        return "🏅"
+    return ranks[rank_num]
+
 @bot.slash_command()
 async def open_door(ctx):
     if config["discord"]["admin_role"] is None:
@@ -223,5 +257,29 @@ async def tag_out(ctx: discord.ApplicationContext, card_id: Option(str, "The car
     else:
         await ctx.respond("You are not currently tagged in.")
     
+@bot.slash_command()
+async def leaderboard(ctx: discord.ApplicationContext):
+    leaderboard = get_ranked_list_users_by_time(database)
+    embed = discord.Embed(title="", color=0x47d530)
+    embed.set_author(name="Shack Time Leaderboard", icon_url="https://em-content.zobj.net/source/twitter/53/trophy_1f3c6.png")
+
+    embed_description = ""
+    for i, user in enumerate(leaderboard):
+        # Format for name: John D. (@Tag)
+        # If privacy is enabled, name is [Name Redacted], but keep the @Tag, unless there is no discord user id
+        name = user["first_name"] + " " + user["last_name"][:1] + ". "
+
+        if user["privacy_enabled"] == 1:
+            name = "[Name Redacted] "
+        if user["discord_user_id"] is not None:
+            name += f"(<@{user['discord_user_id']}>)"
+        
+        formatted_time = display_time(user["total_time"])
+        emoji = get_emoji_from_rank(i)
+        embed_description += f"{emoji} {name} - {formatted_time}\n"
+    embed.description = embed_description
+    await ctx.respond(embed=embed)
+        
+        
 
 bot.run(config["discord"]["discord_token"])
