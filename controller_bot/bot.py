@@ -25,6 +25,11 @@ database = mysql.connector.connect(
 )
 database.autocommit = True
 
+def get_shitty_cursor(*args, **kwargs):
+    if not database.is_connected():
+        database.reconnect()
+    return database.cursor(*args, **kwargs)
+
 def generate_members_embed(members):
     if len(members) == 0:
         return discord.Embed(
@@ -53,7 +58,7 @@ def generate_members_embed(members):
     return embed
 
 def get_members(include_unk=False):
-    cursor = database.cursor(dictionary=True)
+    cursor = get_shitty_cursor(dictionary=True)
     cursor.execute("""SELECT
     cards.id AS card_id_orig,
     members.*,
@@ -78,7 +83,7 @@ WHERE
     return members
 
 def card_get_user(card_id, database):
-    cursor = database.cursor()
+    cursor = get_shitty_cursor()
     cursor.execute("SELECT id, first_name, last_name, callsign, position_in_club, discord_user_id FROM `members` WHERE `card_id` = %s", (card_id,))
     result = cursor.fetchone()
     cursor.close()
@@ -94,7 +99,7 @@ def card_get_user(card_id, database):
     }
 
 def get_card_id_from_discord(discord_id, database):
-    cursor = database.cursor()
+    cursor = get_shitty_cursor()
     cursor.execute("SELECT card_id FROM `members` WHERE `discord_user_id` = %s", (discord_id,))
     result = cursor.fetchone()
     cursor.close()
@@ -103,7 +108,7 @@ def get_card_id_from_discord(discord_id, database):
     return result[0]
 
 def toggle_inside_shack(card_id, database):
-    cursor = database.cursor()
+    cursor = get_shitty_cursor()
     cursor.execute("SELECT `inside_shack`,`card_data` FROM `cards` WHERE `id` = %s", (card_id,))
     result = cursor.fetchone()
     
@@ -125,7 +130,7 @@ def get_members_from_db(ctx: discord.AutocompleteContext):
     if ctx.interaction.user.get_role(config["discord"]["admin_role"]) is None:
         return ["unauth"]
     
-    cursor = database.cursor()
+    cursor = get_shitty_cursor()
     cursor.execute("""SELECT cards.id AS card_id, members.first_name, members.last_name FROM cards LEFT JOIN members ON members.card_id = cards.id WHERE cards.inside_shack = 1""")
     members = cursor.fetchall()
     cursor.close()
@@ -160,7 +165,7 @@ def unlock_door(delay_time=3):
     threading.Thread(target=_unlock_door, args=(delay_time,), daemon=True).start()
 
 def get_ranked_list_users_by_time(database):
-    cursor = database.cursor(dictionary=True)
+    cursor = get_shitty_cursor(dictionary=True)
     # This is a really fucked up query, but it works lol
     cursor.execute("SELECT SUM(stay_length) AS total_time, members.first_name, members.last_name, members.discord_user_id, members.privacy_enabled FROM card_time_logs LEFT JOIN members ON members.card_id=card_time_logs.card_id WHERE members.id IS NOT NULL GROUP BY card_time_logs.card_id ORDER BY total_time DESC")
     result = cursor.fetchall()
