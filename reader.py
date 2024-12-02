@@ -12,8 +12,13 @@ import json
 import time
 import os
 
+def get_shitty_cursor(database, *args, **kwargs):
+    if not database.is_connected():
+        database.reconnect()
+    return database.cursor(*args, **kwargs)
+
 def card_handle_id(data, database):
-    cursor = database.cursor()
+    cursor = get_shitty_cursor(database)
     cursor.execute("SELECT `id`,`card_type` FROM `cards` WHERE `card_data` = %s", (data,))
     result = cursor.fetchone()
     if result is None:
@@ -25,13 +30,13 @@ def card_handle_id(data, database):
     return result[0], result[1]
 
 def card_add_log(card_id, reader_id, database):
-    cursor = database.cursor()
+    cursor = get_shitty_cursor(database)
     cursor.execute("INSERT INTO `logs` (`card_id`, `login_out`, `reader_id`) SELECT `id`, `inside_shack`, %s FROM `cards` WHERE `id`=%s", (reader_id, card_id))
     database.commit()
     cursor.close()
 
 def check_login_within_timeout(card_id, database, interval_min_injectable):
-    cursor = database.cursor()
+    cursor = get_shitty_cursor(database)
     cursor.execute(f"SELECT `reader_id`,`timestamp` FROM `logs` WHERE `timestamp` > (now() - INTERVAL {interval_min_injectable} MINUTE) AND `card_id` = %s ORDER BY `timestamp` DESC LIMIT 1", (card_id,))
     result = cursor.fetchone()
     cursor.close()
@@ -40,7 +45,7 @@ def check_login_within_timeout(card_id, database, interval_min_injectable):
     return True, result[0] # if the resulting number of rows is not 0, then the user has logged in within the timeout
 
 def card_get_user(card_id, database):
-    cursor = database.cursor()
+    cursor = get_shitty_cursor(database)
     cursor.execute("SELECT id, first_name, last_name, callsign, position_in_club, discord_user_id, permissions FROM `members` WHERE `card_id` = %s", (card_id,))
     result = cursor.fetchone()
     cursor.close()
@@ -57,7 +62,7 @@ def card_get_user(card_id, database):
     }
 
 def toggle_inside_shack(card_id, database):
-    cursor = database.cursor()
+    cursor = get_shitty_cursor(database)
     cursor.execute("SELECT `inside_shack` FROM `cards` WHERE `id` = %s", (card_id,))
     result = cursor.fetchone()
     if result is None:
@@ -70,7 +75,7 @@ def toggle_inside_shack(card_id, database):
     return inside_shack == 1
 
 def add_time_log(card_id, stay_length, time_on, database):
-    cursor = database.cursor()
+    cursor =get_shitty_cursor(database)
     cursor.execute("INSERT INTO `card_time_logs` (`card_id`, `stay_length`, `time_on`) VALUES (%s, %s, %s)", (card_id, stay_length, time_on))
     cursor.close()
     database.commit()
@@ -224,7 +229,7 @@ def get_discord_user_info(discord_id, config):
         return user['global_name'] if "global_name" in user else user["username"], f"https://cdn.discordapp.com/avatars/{discord_id}/{user['avatar']}.webp"
 
 def stay_length_of_user(card_id, database):
-    cursor = database.cursor()
+    cursor = get_shitty_cursor(database)
     cursor.execute("SELECT `timestamp` FROM `logs` WHERE `card_id` = %s AND `login_out` = 1 ORDER BY `timestamp` DESC LIMIT 1", (card_id,))
     result = cursor.fetchone()
     if result is None:
@@ -350,7 +355,7 @@ def reader_loop(ser: serial.Serial, config, database):
         database.close()
 
 def create_tables(database):
-    cursor = database.cursor()
+    cursor = get_shitty_cursor(database)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS `cards` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
