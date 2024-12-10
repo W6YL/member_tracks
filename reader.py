@@ -25,7 +25,7 @@ def card_handle_id(data, database):
         cursor.execute("INSERT INTO `cards` (`card_data`) VALUES (%s)", (data,))
         database.commit()
         cursor.close()
-        return cursor.lastrowid
+        return cursor.lastrowid, 0
     cursor.close()
     return result[0], result[1]
 
